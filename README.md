@@ -6,7 +6,7 @@ A fishbone is the visual representation of where an address point actually is an
 * FME 2024.2 or newer (older versions may work as well, but are not guaranteet to)
   *...or equivalent in Esri's Data Interoperability extension
 * Address point layer with the following fields (or their equivalents):
-  * FUll address
+  * Full address
   * Zone
 * [Street Address locator](https://pro.arcgis.com/en/pro-app/latest/help/data/geocoding/introduction-to-locator-roles.htm) or equivalent
 
