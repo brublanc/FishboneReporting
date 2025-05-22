@@ -10,6 +10,7 @@ A fishbone is the visual representation of where an address point actually is an
   * Full address
   * Zone
 * [Street Address locator](https://pro.arcgis.com/en/pro-app/latest/help/data/geocoding/introduction-to-locator-roles.htm) or equivalent
+  * Note: *Must support batch geocoding*
 
 # Quick Start
 
@@ -26,7 +27,7 @@ A fishbone is the visual representation of where an address point actually is an
 
 To create the fishbones, FME first imports the address point layer and creates an "_AddressZone" attribute (field) that's formatted in the following way [address number] [full street name] [zone]. An example would be "100 S Main St Memphis." The state or provice is not necesary. The zone field can be anything that differentiates the same address existing in different areas. This is typically the city/community, but it can also be postal codes or even neighborhood names if they exist.
 
-The next step is to set up a locator that these address points will run against. This locator can be anything as long it covers the same data that your address points represent. An important factor to consider here is cost. Self-hosted and open source locators exist, but many commercial sources require api keys that may or may not have a cost associated with them. Of course this depends on the amount of request being made, but it is important to be mindful of this. Additionally, if using a self-hosted locator, make sure that batch geocoding is supported, especially if sending a large number of requests.  Locators that do not support batch geocoding may take a long time to run through your data.
+The next step is to set up a locator that these address points will run against. This locator can be anything as long it covers the same data that your address points represent. An important factor to consider here is cost. Self-hosted and open source locators exist, but many commercial sources require api keys that may or may not have a cost associated with them. Of course this depends on the amount of requests being made, but it is important to be mindful of this. Additionally, if using a self-hosted locator, make sure that batch geocoding is supported, especially if sending a large number of requests.  Locators that do not support batch geocoding may take a long time to run through your data.
 
 After geocoding the incoming addresses, the results are split into two data streams: one that exports the resuling fishbones, and one that exports any errors that occurred during the geocoding process (timeouts, failed to geocode, etc.).
 
