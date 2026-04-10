@@ -147,23 +147,25 @@ We can deduce the following:
 
 Next we calculate the part of the original range that each segment needs to have. Note that in this example, we are working with even values on the left side.
 
-First, we create an indexed list of where each segment falls within the original segment by using a [Counter](https://docs.safe.com/fme/html/FME-Form-Documentation/FME-Transformers/Transformers/counter.htm). The index for this starts at 1 (segment 1 = 1, segment 2 = 2, etc.).
+First, we create an indexed list of where each segment falls within the original segment by using a [Counter](https://docs.safe.com/fme/html/FME-Form-Documentation/FME-Transformers/Transformers/counter.htm). The index for this starts at 1 (second index value, the first one being 0).
 
-We repeat this step, but this time the index count starts at -1 (segment 1 = -1, segment 2 = 0, etc.).
+We then perform the following calculation:
 
-We then add both of these values to the original FromAddr_L of this segment (120 in this case). Leaving us with the following matrix:
+<i>sum = FromAddr_L + ((_count) - 1) * 2)</i>
 
-| FromAddr_L | _count1 | _count2 | sum*|
-|------------|---------|---------|-----|
-|    120     |    1    |   -1    | 120 |
-|    120     |    2    |    0    | 122 |
-|    120     |    3    |    1    | 124 |
-|    120     |    4    |    2    | 126 |
-|    120     |    5    |    3    | 128 |
-|    ...     |   ....  |   ...   | ... |
-|    120     |    14   |   12    | 146 |
-|    120     |    15   |   13    | 148 |
-|    120     |    16   |   14    | 150 |
+Leaving us with the following matrix:
+
+| FromAddr_L | _count | sum*|
+|------------|--------|-----|
+|    120     |    1   | 120 |
+|    120     |    2   | 122 |
+|    120     |    3   | 124 |
+|    120     |    4   | 126 |
+|    120     |    5   | 128 |
+|    ...     |   .... | ... |
+|    120     |    14  | 146 |
+|    120     |    15  | 148 |
+|    120     |    16  | 150 |
 
 *This is the value that is used for matching with the address points. For example, if we have an address point with an Add_Number of 126, it would match with the segment that has a sum of 126 in this matrix. 
 
