@@ -91,7 +91,7 @@ Fishbone errors are given some attribution to help identify the issues, then exp
 To create the fishbones, FME first imports the address point layer and the road centerline layer. Each data stream is processed separately according to the details listed below:
 
 #### <u>Address points</u>:
-After the points are imported and potentially reprojected, a matching field called "_matchlabel_withzone" is created in-memory. This field is a concatenation of the following fields (spaces or equivalent values don't matter here): Add_Number + (street name components*) + (APolygon components**). An example of a resulting value for this field is "3150-----Lenox Park-Blvd---TN-Shelby-Memphis-". In this example, dashes were used between elements; if the element was not present for that address, it was left empty (hence all the ---).
+After the points are imported and potentially reprojected, a matching field called "_matchlabel_withzone" is created in-memory. This field is a concatenation of the following fields (spaces or equivalent values don't matter here): Add_Number + (street name components<sup>1</sup>) + (APolygon components<sup>2</sup>). An example of a resulting value for this field is "3150-----Lenox Park-Blvd---TN-Shelby-Memphis-". In this example, dashes were used between elements; if the element was not present for that address, it was left empty (hence all the ---).
 
 This concatenated field is then passed downstream to be matched with their corresponding position in the road centerlines (see below).
 
