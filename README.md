@@ -98,13 +98,12 @@ This concatenated field is then passed downstream to be matched with their corre
 #### <u>Road Centerlines</u>:
 
 After the exceptions are filtered out, and road centerlines are imported & potentially reprojected, the following fields are created in-memory:
-* _seglength: the length of the road segment
 * _leftrange: the range of address numbers on the left side of the road segment (calculated as ToAddr_L - FromAddr_L)
 * _rightrange: the range of address numbers on the right side of the road segment (calculated as ToAddr_R - FromAddr_R)
-* _leftincrement: ((_seglength)/2 + 1) for odd ranges or ((_seglength)/2) for even ranges. These are used to determine how far along the road centerline the geocoded point should be placed based on its address number. More details can be found within the scripts themselves
-* _rightincrement: ((_seglength)/2 + 1) for odd ranges or ((_seglength)/2) for even ranges. These are used to determine how far along the road centerline the geocoded point should be placed based on its address number. More details can be found within the scripts themselves
-* _intervallength_l: the length of the interval for the left side of the road segment, calculated as (_seglength)/(_leftincrement)
-* _intervallength_r: the length of the interval for the right side of the road segment, calculated as (_seglength)/(_rightincrement)
+* _leftincrement: (length/2 + 1) for odd ranges or (length/2) for even ranges. These are used to determine how far along the road centerline the geocoded point should be placed based on its address number. More details can be found within the scripts themselves
+* _rightincrement: (length/2 + 1) for odd ranges or (length/2) for even ranges. These are used to determine how far along the road centerline the geocoded point should be placed based on its address number. More details can be found within the scripts themselves
+* _intervallength_l: the length of the interval for the left side of the road segment, calculated as (length)/(_leftincrement)
+* _intervallength_r: the length of the interval for the right side of the road segment, calculated as (length)/(_rightincrement)
 * _countinglabel_l: a concatenated field that includes the street name components<sup>1</sup> and APolygon components<sup>2</sup> for the left side of the road segment. This is used for counts that are needed downstream
 * _countinglabel_r: a concatenated field that includes the street name components<sup>1</sup> and APolygon components<sup>2</sup> for the right side of the road segment. This is used for counts that are needed downstream
 * _FullName: a concatenated field that includes the street name components<sup>1</sup> for both sides of the road segment. This is used for matching with the address points downstream
@@ -134,7 +133,7 @@ The last step is to use a [Line Builder](https://docs.safe.com/fme/html/FME-Form
 ### <u>Examples</u>
 
 Assuming that we have a segment with the following attributes:
-* _seglength = 50 ft
+* _seglength = 50 ft (calculated on the fly based on the geometry of the road centerline segment)
 * FromAddr_L = 120
 * ToAddr_L  = 150
 
