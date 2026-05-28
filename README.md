@@ -77,7 +77,7 @@ A fishbone is the visual representation of where an address point actually is an
 
 # <u>Technical Details</u>
 ### *Option 1: External geocoding (using a hosted locator):*
-To create the fishbones, FME first imports the address point layer and creates an "_AddressZone" attribute (field) that's formatted in the following way [address number] [full street name] [zone]. An example would be "100 S Main St Memphis." The state or province is not necessary. The zone field can be anything that differentiates the same address existing in different areas. This is typically the city/community, but it can also be postal codes or even neighborhood names if they exist.
+To create the fishbones, FME first imports the address point layer and creates an "_AddressZone" attribute (field) that's formatted in the following way ```[address number] [full street name] [zone]```. An example would be ```100 S Main St Memphis```. The state or province is not necessary. The zone field can be anything that differentiates the same address existing in different areas. This is typically the city/community, but it can also be postal codes or even neighborhood names if they exist.
 
 The next step is to set up a locator that these address points will run against. This locator can be anything as long it covers the same data that your address points represent. An important factor to consider here is cost. Self-hosted and open source locators exist, but many commercial sources require api keys that may or may not have a cost associated with them. Of course this depends on the amount of requests being made, but it is important to be mindful of this. Additionally, if using a self-hosted locator, make sure that batch geocoding is supported, especially if sending a large number of requests.  Locators that do not support batch geocoding may take a long time to run through your data.
 
@@ -98,25 +98,31 @@ This concatenated field is then passed downstream to be matched with their corre
 #### <u>Road Centerlines</u>:
 
 After the exceptions are filtered out, and road centerlines are imported & potentially reprojected, the following fields are created in-memory:
-* _leftrange: the range of address numbers on the left side of the road segment (calculated as ToAddr_L - FromAddr_L)
-* _rightrange: the range of address numbers on the right side of the road segment (calculated as ToAddr_R - FromAddr_R)
-* _leftincrement: (length/2 + 1) for odd ranges or (length/2) for even ranges. These are used to determine how far along the road centerline the geocoded point should be placed based on its address number. More details can be found within the scripts themselves
-* _rightincrement: (length/2 + 1) for odd ranges or (length/2) for even ranges. These are used to determine how far along the road centerline the geocoded point should be placed based on its address number. More details can be found within the scripts themselves
-* _intervallength_l: the length of the interval for the left side of the road segment, calculated as (length)/(_leftincrement)
-* _intervallength_r: the length of the interval for the right side of the road segment, calculated as (length)/(_rightincrement)
+* _leftrange: the range of address numbers on the left side of the road segment (calculated as ```ToAddr_L - FromAddr_L```)
+* _rightrange: the range of address numbers on the right side of the road segment (calculated as ```ToAddr_R - FromAddr_R```)
+* _leftincrement: ```(length/2 + 1)``` for odd ranges or ```(length/2)``` for even ranges. These are used to determine how far along the road centerline the geocoded point should be placed based on its address number. More details can be found within the scripts themselves
+* _rightincrement: ```(length/2 + 1)``` for odd ranges or ```(length/2)``` for even ranges. These are used to determine how far along the road centerline the geocoded point should be placed based on its address number. More details can be found within the scripts themselves
+* _intervallength_l: the length of the interval for the left side of the road segment, calculated as ```(length)/(_leftincrement)```
+* _intervallength_r: the length of the interval for the right side of the road segment, calculated as ```(length)/(_rightincrement)```
 * _countinglabel_l: a concatenated field that includes the street name components<sup>1</sup> and APolygon components<sup>2</sup> for the left side of the road segment. This is used for counts that are needed downstream
 * _countinglabel_r: a concatenated field that includes the street name components<sup>1</sup> and APolygon components<sup>2</sup> for the right side of the road segment. This is used for counts that are needed downstream
 * _FullName: a concatenated field that includes the street name components<sup>1</sup> for both sides of the road segment. This is used for matching with the address points downstream
 
 The next step is to split the road centerline segments into smaller segments based on the interval lengths that were just calculated for each side. This is done via a [Chopper](https://docs.safe.com/fme/html/FME-Form-Documentation/FME-Transformers/Transformers/chopper.htm?Highlight=chopper) with group processing using the _intervallength fields. A [Densifier](https://docs.safe.com/fme/html/FME-Form-Documentation/FME-Transformers/Transformers/densifier.htm) is used prior to this per Safe's suggestion.
 
-We then use the _countlabel fields get the sequential order of each chopped segment in relation to its original parent segment. The resulting _count1 attribute starts at an index of 1. We repeat this step for a second count attribute (_count2) that starts at -1 instead. We add both of these to the FromAddr_L attribute to get an accurate _leftnumber that represents the geocoded location along the line. For a full example illustrating this, see the Examples section.
+We then use the _countlabel fields to get the sequential order of each chopped segment in relation to its original parent segment. The resulting _count attribute starts at an index of 1. We perform the following calculation to get an accurate _leftnumber that represents the geocoded location along the line:
+
+```
+sum = FromAddr_L + ((_count) - 1) * 2)
+```
+
+<i>Note: for a full example illustrating this, see the Examples section.</i>
 
 We also replace the linear geometry of the chopped road centerline segments with point geometries at the starting node of each segment. This will serve as the ending node for each fishbone (with the address points themselves being the starting nodes).
 
 A [duplicate filter](https://docs.safe.com/fme/html/FME-Form-Documentation/FME-Transformers/Transformers/duplicatefilter.htm) is used at this stage to remove any duplicate points that may have been created during the chopping process. This is important to ensure that the same point is not matched with multiple address points downstream.
 
-It is at this point can do an attribute join between the chopped segments and the address points using a matching field (_matchlabel_withzone). This field is already complete for the address points, but it needs to be calculated for the chopped segment points by concatenating the recently calculated range value and the existing _FullName field. The formatting of these fields needs to be exactly the same for the address points and the chopped road centerline segments for the join to work properly. <b><u>This is a critical step, as it is where the geocoding happens in this workflow</u></b>.
+It is at this point that we can do an attribute join between the chopped segments and the address points using a matching field (_matchlabel_withzone). This field is already complete for the address points, but it needs to be calculated for the chopped segment points by concatenating the recently calculated range value and the existing _FullName field. The formatting of these fields needs to be exactly the same for the address points and the chopped road centerline segments for the join to work properly. <b><u>This is a critical step, as it is where the geocoding happens in this workflow</u></b>.
 
 The last step is to use a [Line Builder](https://docs.safe.com/fme/html/FME-Form-Documentation/FME-Transformers/Transformers/linebuilder.htm) to connect the starting node (address point) with the ending node (chopped road centerline point) to create the fishbone lines. The length of the resulting line is then used to filter out any fishbones that are deemed to be too long (2 miles by default). If not too long, export the fishbones to the writer, otherwise remove the last vertex (on the geocoded location) and send to be exported as a fishbone error alongside any other errors that may have been created during the process.
 
@@ -133,14 +139,18 @@ The last step is to use a [Line Builder](https://docs.safe.com/fme/html/FME-Form
 ### <u>Examples</u>
 
 Assuming that we have a segment with the following attributes:
-* _seglength = 50 ft (calculated on the fly based on the geometry of the road centerline segment)
-* FromAddr_L = 120
-* ToAddr_L  = 150
+```
+_seglength = 50 ft (calculated on the fly based on the geometry of the road centerline segment)
+FromAddr_L = 120
+ToAddr_L  = 150
+```
 
 We can deduce the following:
-* _leftrange = 30 (to - from)
-* _leftincrement = 16 ((_leftrange/2) + 1)
-* _intervallength_l = 1.875 (_seglength/_leftincrement)
+```
+_leftrange = 30 (to - from)
+_leftincrement = 16 ((_leftrange/2) + 1)
+_intervallength_l = 1.875 (_seglength/_leftincrement)
+```
 
 ... meaning that the original segment is split into <u> 16 smaller segments that are 1.875 ft each</u>.
 
@@ -150,7 +160,9 @@ First, we create an indexed list of where each segment falls within the original
 
 We then perform the following calculation:
 
-<i>sum = FromAddr_L + ((_count) - 1) * 2)</i>
+```
+sum = FromAddr_L + ((_count) - 1) * 2)
+```
 
 Leaving us with the following matrix:
 
